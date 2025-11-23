@@ -6,3 +6,47 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Mobile friendly defaults */
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.container {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+/* Make form controls and buttons touch-friendly on small screens */
+input, select, textarea, button {
+  font-size: 16px;
+}
+
+/* Ant Design button full-width on narrow viewports */
+@media (max-width: 480px) {
+  .ant-btn {
+    display: block;
+    width: 100%;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 10px 12px;
+    box-sizing: border-box;
+  }
+
+  .ant-form-item-label > label {
+    white-space: normal;
+  }
+
+  .ant-form-item-control {
+    width: 100%;
+  }
+}
+
+/* Improve tap targets and spacing */
+.btn-gap { margin-top: 12px; }
+
