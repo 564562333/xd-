@@ -13,6 +13,8 @@ import {
   message,
   Popconfirm,
   Image,
+  Card,
+  Typography,
 } from 'antd';
 import { PlusOutlined, QrcodeOutlined, PictureOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -47,6 +49,7 @@ const ActivityListPage = () => {
     posters: [],
     loading: false,
   });
+  const [isMobile, setIsMobile] = useState(false);
 
   const fetchActivities = async (pageNum = pagination.current, pageSize = pagination.pageSize, currentFilters = filters) => {
     setLoading(true);
@@ -78,6 +81,13 @@ const ActivityListPage = () => {
   useEffect(() => {
     fetchActivities(1, pagination.pageSize, {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   const handleTableChange = (newPagination) => {
@@ -208,6 +218,8 @@ const ActivityListPage = () => {
     },
   ];
 
+  const { Paragraph, Text } = Typography;
+
   return (
     <div>
       <Form form={form} onFinish={handleSearch} layout="vertical" style={{ marginBottom: 24 }}>
@@ -252,14 +264,47 @@ const ActivityListPage = () => {
         新建活动
       </Button>
 
-      <Table
-        columns={columns}
-        dataSource={activities}
-        rowKey="id"
-        pagination={pagination}
-        loading={loading}
-        onChange={handleTableChange}
-      />
+      {!isMobile ? (
+        <Table
+          columns={columns}
+          dataSource={activities}
+          rowKey="id"
+          pagination={pagination}
+          loading={loading}
+          onChange={handleTableChange}
+        />
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+          {activities.map((record) => (
+            <Card key={record.id} size="small" bordered>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 6 }}>{record.activityName}</div>
+                  <Paragraph ellipsis={{ rows: 2 }}>{record.activityDescription || '-'}</Paragraph>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    <div>报名：{formatDateTime(record.registrationStart)} ~ {formatDateTime(record.registrationEnd)}</div>
+                    <div>活动：{formatDateTime(record.activityStart)} ~ {formatDateTime(record.activityEnd)}</div>
+                    <div>地点：{record.location || '-'}</div>
+                    <div>报名：{(record.currentParticipants ?? 0)} / {(record.maxParticipants ?? 0)}</div>
+                    <div style={{ marginTop: 6 }}><Tag color={(STATUS_MAP[record.status] || {}).color}>{(STATUS_MAP[record.status] || {}).text || '未知'}</Tag></div>
+                  </div>
+                </div>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <Space wrap>
+                  <Button size="small" onClick={() => navigate(`/activity/edit/${record.id}`)}>编辑</Button>
+                  <Popconfirm title="确定删除吗？" onConfirm={() => handleDelete(record.id)}>
+                    <Button size="small" danger>删除</Button>
+                  </Popconfirm>
+                  <Button size="small" icon={<QrcodeOutlined />} onClick={() => handleShowQrCode(record.id, 'registration')}>报名码</Button>
+                  <Button size="small" icon={<QrcodeOutlined />} onClick={() => handleShowQrCode(record.id, 'checkin')}>签到码</Button>
+                  <Button size="small" icon={<PictureOutlined />} onClick={() => handleShowPosters(record.id, record.activityName)}>海报</Button>
+                </Space>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Modal
         title={`${qrCodeModal.type}二维码`}
